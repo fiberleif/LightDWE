@@ -225,7 +225,7 @@ namespace multiverso
                         data_block->input_nodes.insert(sentence[sentence_position]);
                     }
                 }
-                for (int d = 0; d < option_->negative_num * input_nodes_.size(); d++)
+                for (int d = 0; d < option_->negative_num * data_block->input_nodes.size(); d++)
                 {
                     next_random = sampler_->GetNextRandom(next_random);
                     int target = sampler_->NegativeSampling(next_random);
