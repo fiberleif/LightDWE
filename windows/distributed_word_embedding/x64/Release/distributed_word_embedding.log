@@ -1,0 +1,5 @@
+﻿  word_embedding.cpp
+..\..\src\word_embedding.cpp(340): warning C4244: 'initializing' : conversion from 'multiverso::wordembedding::uint64' to 'int', possible loss of data
+  Generating code
+  Finished generating code
+  distributed_word_embedding.vcxproj -> C:\Users\v-guoql\Desktop\Opensource\lightDWE\distributed_word_embedding\windows\distributed_word_embedding\x64\Release\distributed_word_embedding.exe
