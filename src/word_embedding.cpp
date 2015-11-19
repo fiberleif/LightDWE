@@ -57,12 +57,12 @@ namespace multiverso
                 int64 word_count_deta;
                 int *sentence;
                 uint64 next_random;
-				
+				std::vector <int> negativesample(data_block->negativesample_pools.begin(), data_block->negativesample_pools.end());
                 data_block->GetSentence(i, sentence, sentence_length,
                     word_count_deta, next_random);
 			
                 this->Train(sentence, sentence_length,
-					next_random, hidden_act, hidden_err, data_block->negativesample_pools);
+					next_random, hidden_act, hidden_err, negativesample);
 
                 word_count += word_count_deta;
             }
@@ -80,7 +80,7 @@ namespace multiverso
         }
 
         void WordEmbedding::Train(int* sentence, int sentence_length,
-            uint64 next_random, real* hidden_act, real* hidden_err, std::unordered_set <int> &negativesample_pools)
+            uint64 next_random, real* hidden_act, real* hidden_err, std::vector <int> &negativesample_pools)
         {
             ParseSentence(sentence, sentence_length,
                 next_random, hidden_act, hidden_err, &WordEmbedding::TrainSample, negativesample_pools);
@@ -225,7 +225,7 @@ namespace multiverso
 						data_block->output_nodes.insert(sentence[sentence_position]);
 					// negativesample pool's default size is negative_num*sentence_length
 					if (i == 0)
-					multiverso::Log::Debug("[Paramterloader]------[PrepareParameter]------negativesample_pools insert starts:%lf \n", clock() / (double)CLOCKS_PER_SEC);
+						multiverso::Log::Debug("[Paramterloader]------[PrepareParameter]------negativesample_pools insert starts:%lf \n", clock() / (double)CLOCKS_PER_SEC);
 					for (int d = 0; d < (option_->negative_num)*sentence_length; d++)
 					{
 						next_random = sampler_->GetNextRandom(next_random);
@@ -252,7 +252,7 @@ namespace multiverso
         //Parse the sentence and deepen into two branches
         void WordEmbedding::ParseSentence(int* sentence, int sentence_length,
             uint64 next_random, real* hidden_act, real* hidden_err,
-			FunctionType function, std::unordered_set <int> &negativesample_pools)
+			FunctionType function, std::vector <int> &negativesample_pools)
         {
             if (sentence_length == 0)
                 return;
@@ -290,31 +290,25 @@ namespace multiverso
                 {
                     input_nodes.clear();
                     output_nodes.clear();
-					if (sentence_position == 0)
-					multiverso::Log::Debug("[Trainer]------[TrainNN]------[Parse]------start %lf \n", clock() / (double)CLOCKS_PER_SEC);
+					//if (sentence_position == 0)
+					//multiverso::Log::Debug("[Trainer]------[TrainNN]------[Parse]------start %lf \n", clock() / (double)CLOCKS_PER_SEC);
                     Parse(feat, feat_size, sentence[sentence_position],
                         next_random, input_nodes, output_nodes, negativesample_pools);
-					if (sentence_position == 0)
-					multiverso::Log::Debug("[Trainer]------[TrainNN]------[Parse]------end %lf \n", clock() / (double)CLOCKS_PER_SEC);
-					if (sentence_position == 0)
-					multiverso::Log::Debug("[Trainer]------[TrainNN]------[Trainsample]------start %lf \n", clock() / (double)CLOCKS_PER_SEC);
+					//if (sentence_position == 0)
+					//multiverso::Log::Debug("[Trainer]------[TrainNN]------[Parse]------end %lf \n", clock() / (double)CLOCKS_PER_SEC);
+					//if (sentence_position == 0)
+					//multiverso::Log::Debug("[Trainer]------[TrainNN]------[Trainsample]------start %lf \n", clock() / (double)CLOCKS_PER_SEC);
                     (this->*function)(input_nodes, output_nodes, hidden_act, hidden_err);
-					if (sentence_position == 0)
-					multiverso::Log::Debug("[Trainer]------[TrainNN]------[Trainsample]------end %lf \n", clock() / (double)CLOCKS_PER_SEC);
+					//if (sentence_position == 0)
+					//multiverso::Log::Debug("[Trainer]------[TrainNN]------[Trainsample]------end %lf \n", clock() / (double)CLOCKS_PER_SEC);
                 }
             }
         }
         //Parse the windows's input&output nodes
         inline void WordEmbedding::Parse(int *feat, int feat_cnt, int word_idx,
             uint64 &next_random, std::vector<int>& input_nodes,
-			std::vector<std::pair<int, int> >& output_nodes, std::unordered_set <int> &negativesample_pools)
+			std::vector<std::pair<int, int> >& output_nodes, std::vector <int> &negativesample_pools)
         {
-			if (flag)
-			multiverso::Log::Debug("[Trainer]------[TrainNN]------[Parse]------Negative_copy starts:%lf \n", clock() / (double)CLOCKS_PER_SEC);
-			std::vector <int> negativesample(negativesample_pools.begin(), negativesample_pools.end());
-			if (flag)
-			multiverso::Log::Debug("[Trainer]------[TrainNN]------[Parse]------Negative_copy ends:%lf \n", clock() / (double)CLOCKS_PER_SEC);
-			flag = false;
             for (int i = 0; i < feat_cnt; ++i)
             {
                 input_nodes.push_back(feat[i]);
@@ -338,7 +332,7 @@ namespace multiverso
                     //output_nodes.push_back(std::make_pair(target, 0));
 					next_random = sampler_->GetNextRandom(next_random);
 					int index = (next_random >> 8) % negativesample_pools.size();
-					int target = negativesample[index];
+					int target = negativesample_pools[index];
 					if (target == word_idx) continue;
 					output_nodes.push_back(std::make_pair(target, 0));
 				}

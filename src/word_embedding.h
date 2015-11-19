@@ -92,7 +92,7 @@ namespace multiverso
             */
             void Parse(int *feat, int feat_cnt, int word_idx, uint64 &next_random,
                 std::vector<int>& input_nodes,
-				std::vector<std::pair<int, int> >& output_nodes, std::unordered_set <int> &negativesample_pools);
+				std::vector<std::pair<int, int> >& output_nodes, std::vector <int> &negativesample_pools);
             /*!
             * \brief Parse a sentence and deepen into two branchs
             * \one for TrainNN,the other one is for Parameter_parse&request
@@ -100,7 +100,7 @@ namespace multiverso
             void ParseSentence(int* sentence, int sentence_length,
                 uint64 next_random,
                 real* hidden_act, real* hidden_err,
-				FunctionType function, std::unordered_set <int> &negativesample_pools);
+				FunctionType function, std::vector <int> &negativesample_pools);
             /*!
             * \brief Get the hidden layer vector
             * \param input_nodes represent the input nodes
@@ -139,7 +139,7 @@ namespace multiverso
             * \brief Train the sentence actually
             */
             void Train(int* sentence, int sentence_length,
-				uint64 next_random, real* hidden_act, real* hidden_err, std::unordered_set <int> &negativesample_pools);
+				uint64 next_random, real* hidden_act, real* hidden_err, std::vector <int> &negativesample_pools);
 
             //No copying allowed
             WordEmbedding(const WordEmbedding&);
