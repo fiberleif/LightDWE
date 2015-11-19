@@ -32,15 +32,15 @@ namespace multiverso
 
             DataBlock *data = reinterpret_cast<DataBlock*>(data_block);
             //Step 1, compute the parameters which will be used when the trainers begin 
-            multiverso::Log::Debug("Rank %d [Parameterloader]------[PrepareParameter]------begin %d\n", multiverso::Multiverso::ProcessRank()
+            multiverso::Log::Info("Rank %d [Parameterloader]------[PrepareParameter]------begin %d\n", multiverso::Multiverso::ProcessRank()
 				,parse_and_request_count_);
-			multiverso::Log::Debug("Rank %d Datablock's sentence size %d \n", multiverso::Multiverso::ProcessRank(),data->Size());
+			
             WordEmbedding_->PrepareParameter(data);
-			multiverso::Log::Debug("Rank %d [Parameterloader]------[PrepareParameter]------end %d\n", multiverso::Multiverso::ProcessRank(), parse_and_request_count_);
+			multiverso::Log::Info("Rank %d [Parameterloader]------[PrepareParameter]------end %d\n", multiverso::Multiverso::ProcessRank(), parse_and_request_count_);
             //Step 2, Request the parameter
-			multiverso::Log::Debug("Rank %d [Parameterloader]------[RequestParameter]------begin %d\n", multiverso::Multiverso::ProcessRank(), parse_and_request_count_);
+			multiverso::Log::Info("Rank %d [Parameterloader]------[RequestParameter]------begin %d\n", multiverso::Multiverso::ProcessRank(), parse_and_request_count_);
             RequestParameter(data);
-			multiverso::Log::Debug("Rank %d [Parameterloader]------[RequestParameter]------end %d\n", multiverso::Multiverso::ProcessRank(), parse_and_request_count_);
+			multiverso::Log::Info("Rank %d [Parameterloader]------[RequestParameter]------end %d\n", multiverso::Multiverso::ProcessRank(), parse_and_request_count_);
             //Step 3, store the needed parameters in data_block
             
 			multiverso::Log::Info("Rank %d [Parameterloader]------end %d\n",

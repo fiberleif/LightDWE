@@ -51,14 +51,14 @@ namespace multiverso
         void WordEmbedding::Train(DataBlock *data_block, int index_start, int interval,
             int64& word_count, real* hidden_act, real* hidden_err)
         {
+            std::vector <int> negativesample(data_block->negativesample_pools.begin(), data_block->negativesample_pools.end());
             for (int i = index_start; i < data_block->Size(); i += interval)
             {
 				int sentence_length;
                 int64 word_count_deta;
                 int *sentence;
                 uint64 next_random;
-				std::vector <int> negativesample(data_block->negativesample_pools.begin(), data_block->negativesample_pools.end());
-                data_block->GetSentence(i, sentence, sentence_length,
+				data_block->GetSentence(i, sentence, sentence_length,
                     word_count_deta, next_random);
 			
                 this->Train(sentence, sentence_length,
@@ -199,45 +199,40 @@ namespace multiverso
 			int64 word_count_delta;
 			int *sentence;
 			uint64 next_random;
-			for (int i = 0; i < data_block->Size(); ++i)
-			{
-				data_block->GetSentence(i, sentence, sentence_length, word_count_delta, next_random);
-				if (i == 0)
-				multiverso::Log::Debug("[Paramterloader]------[PrepareParameter]------input_nodes insert starts:%lf \n",clock() / (double)CLOCKS_PER_SEC);
-				for (int sentence_position = 0; sentence_position < sentence_length; ++sentence_position)
-				{
-					data_block->input_nodes.insert(sentence[sentence_position]);
-			    }
-				if (i == 0)
-				multiverso::Log::Debug("[Paramterloader]------[PrepareParameter]------input_nodes insert ends:%lf \n", clock() / (double)CLOCKS_PER_SEC);
-				if (option_->hs)
-				{
-					for (int sentence_position = 0; sentence_position < sentence_length; ++sentence_position)
-					{
-						auto info = huffmanEncoder_->GetLabelInfo(sentence[sentence_position]);
-						for (int d = 0; d < info->codelen; d++)
-								data_block->output_nodes.insert(info->point[d]);
-					}
+            if (option_->hs)
+            {
+			    for (int i = 0; i < data_block->Size(); ++i)
+			    {
+				    data_block->GetSentence(i, sentence, sentence_length, word_count_delta, next_random);
+				
+				    for (int sentence_position = 0; sentence_position < sentence_length; ++sentence_position)
+				    {
+					    data_block->input_nodes.insert(sentence[sentence_position]);
+                        auto info = huffmanEncoder_->GetLabelInfo(sentence[sentence_position]);
+                        for (int d = 0; d < info->codelen; d++)
+                            data_block->output_nodes.insert(info->point[d]);
+			        }
 				}
-				else
-				{
-					for (int sentence_position = 0; sentence_position < sentence_length; ++sentence_position)
-						data_block->output_nodes.insert(sentence[sentence_position]);
-					// negativesample pool's default size is negative_num*sentence_length
-					if (i == 0)
-						multiverso::Log::Debug("[Paramterloader]------[PrepareParameter]------negativesample_pools insert starts:%lf \n", clock() / (double)CLOCKS_PER_SEC);
-					for (int d = 0; d < (option_->negative_num)*sentence_length; d++)
-					{
-						next_random = sampler_->GetNextRandom(next_random);
-						int target = sampler_->NegativeSampling(next_random);
-						data_block->output_nodes.insert(target);
-						data_block->negativesample_pools.insert(target);
-					}
-					if (i == 0)
-					multiverso::Log::Debug("[Paramterloader]------[PrepareParameter]------negativesample_pools insert ends:%lf \n", clock() / (double)CLOCKS_PER_SEC);
-				}
-			
 			}
+            else
+            {
+                for (int i = 0; i < data_block->Size(); ++i)
+                {
+                    data_block->GetSentence(i, sentence, sentence_length, word_count_delta, next_random);
+
+                    for (int sentence_position = 0; sentence_position < sentence_length; ++sentence_position)
+                    {
+                        data_block->input_nodes.insert(sentence[sentence_position]);
+                    }
+                }
+                for (int d = 0; d < option_->negative_num * input_nodes_.size(); d++)
+                {
+                    next_random = sampler_->GetNextRandom(next_random);
+                    int target = sampler_->NegativeSampling(next_random);
+                    data_block->output_nodes.insert(target);
+                    data_block->negativesample_pools.insert(target);
+                }
+            }
 		}
         //Copy the input&ouput nodes
         void WordEmbedding::DealPrepareParameter(std::vector<int>& input_nodes,
@@ -290,17 +285,12 @@ namespace multiverso
                 {
                     input_nodes.clear();
                     output_nodes.clear();
-					//if (sentence_position == 0)
-					//multiverso::Log::Debug("[Trainer]------[TrainNN]------[Parse]------start %lf \n", clock() / (double)CLOCKS_PER_SEC);
+					
                     Parse(feat, feat_size, sentence[sentence_position],
                         next_random, input_nodes, output_nodes, negativesample_pools);
-					//if (sentence_position == 0)
-					//multiverso::Log::Debug("[Trainer]------[TrainNN]------[Parse]------end %lf \n", clock() / (double)CLOCKS_PER_SEC);
-					//if (sentence_position == 0)
-					//multiverso::Log::Debug("[Trainer]------[TrainNN]------[Trainsample]------start %lf \n", clock() / (double)CLOCKS_PER_SEC);
+					
                     (this->*function)(input_nodes, output_nodes, hidden_act, hidden_err);
-					//if (sentence_position == 0)
-					//multiverso::Log::Debug("[Trainer]------[TrainNN]------[Trainsample]------end %lf \n", clock() / (double)CLOCKS_PER_SEC);
+					
                 }
             }
         }

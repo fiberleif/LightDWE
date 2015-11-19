@@ -40,9 +40,13 @@ namespace multiverso
 
             if (trainer_id_ == 0)
                 //Record the starting time of the Trainiteration  
+            {
                 fprintf(log_file_, "%lf\n", (clock()) / (double)CLOCKS_PER_SEC);
+                fflush(log_file_);
+            }
 
-            multiverso::Log::Info("[Trainer]------Rank %d Train %d Begin TrainIteration%d ...\n",
+
+            multiverso::Log::Info("Rank %d [Trainer]------Train %d Begin TrainIteration%d ...\n",
                 process_id_, trainer_id_, train_count_);
             ++train_count_;
             //Compute the total number of processes
@@ -74,7 +78,7 @@ namespace multiverso
 
             //Step 1, Copy the parameter from multiverso to WordEmbedding_
             //One trainer only copy a part of parameters
-            multiverso::Log::Debug("Rank %d [Trainer]------Train %d Copyparameter Begin TrainIteration%d ...\n",
+            multiverso::Log::Info("Rank %d [Trainer]------Train %d Copyparameter Begin TrainIteration%d ...\n",
                 process_id_, trainer_id_, train_count_);
 			
             CopyParameter(local_input_nodes, local_output_nodes);
@@ -84,7 +88,7 @@ namespace multiverso
                 WordEmbedding_->word_count_actual = copy_row.At(0);
                 WordEmbedding_->UpdateLearningRate();
             }
-            multiverso::Log::Debug("Rank %d [Trainer]------Train %d Copyparameter end TrainIteration%d ...\n",
+            multiverso::Log::Info("Rank %d [Trainer]------Train %d Copyparameter end TrainIteration%d ...\n",
                 process_id_, trainer_id_, train_count_);
             //Wait for all the trainers to finish copying parameter
             barrier_->Wait();
@@ -93,10 +97,11 @@ namespace multiverso
             //Use WordEmbedding_ to train a part of data_block
             int64 last_word_count = word_count;
             clock_t start = clock();
-            multiverso::Log::Debug("Rank %d [Trainer]------Train %d TrainNN Begin TrainIteration%d ...\n",
+            multiverso::Log::Info("Rank %d [Trainer]------Train %d TrainNN Begin TrainIteration%d ...\n",
                 process_id_, trainer_id_, train_count_);
-			multiverso::Log::Debug("Rank %d [Trainer]------Train %d Datablock's sentence number:%d ...\n",
-				process_id_, trainer_id_, data->Size());
+            if (trainer_id_ == 0)
+			    multiverso::Log::Info("Rank %d [Trainer]------Train %d Datablock's sentence number:%d ...\n",
+				    process_id_, trainer_id_, data->Size());
             WordEmbedding_->Train(data, trainer_id_, option_->thread_cnt,
                 word_count, hidden_act_, hidden_err_);
             if (word_count > last_word_count)
@@ -105,11 +110,11 @@ namespace multiverso
                     ((double)word_count - last_word_count) / 
                     (clock() - start) * (double)CLOCKS_PER_SEC / 1000);
             }
-            multiverso::Log::Debug("Rank %d [Trainer]------Train %d TrainNN end TrainIteration%d ...\n",
+            multiverso::Log::Info("Rank %d [Trainer]------Train %d TrainNN end TrainIteration%d ...\n",
                 process_id_, trainer_id_, train_count_);
             //Wait for all the trainers to finish training
             barrier_->Wait();
-            multiverso::Log::Debug("Rank %d [Trainer]------Train %d AddDeltaParameter Begin TrainIteration%d ...\n",
+            multiverso::Log::Info("Rank %d [Trainer]------Train %d AddDeltaParameter Begin TrainIteration%d ...\n",
                 process_id_, trainer_id_, train_count_);
             //Step 3, After finishing training, add the delta of parameters to multiverso
             AddDeltaParameter(local_input_nodes, local_output_nodes);
@@ -118,7 +123,7 @@ namespace multiverso
                 multiverso::Row<int64> &copy_row = GetRow<int64>(kWordCountActualTableId, 0);
                 Add<int64>(kWordCountActualTableId, 0, 0, WordEmbedding_->word_count_actual - copy_row.At(0));
             }
-            multiverso::Log::Debug("Rank %d [Trainer]------Train %d AddDeltaParameter end TrainIteration%d ...\n",
+            multiverso::Log::Info("Rank %d [Trainer]------Train %d AddDeltaParameter end TrainIteration%d ...\n",
                 process_id_, trainer_id_, train_count_);
 
 			//If the data_block is the last one,Dump the input-embedding weights 
