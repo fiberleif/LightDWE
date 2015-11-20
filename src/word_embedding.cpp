@@ -223,6 +223,7 @@ namespace multiverso
                     for (int sentence_position = 0; sentence_position < sentence_length; ++sentence_position)
                     {
                         data_block->input_nodes.insert(sentence[sentence_position]);
+                        data_block->output_nodes.insert(sentence[sentence_position]);
                     }
                 }
                 for (int d = 0; d < option_->negative_num * data_block->input_nodes.size(); d++)
