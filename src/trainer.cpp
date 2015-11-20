@@ -106,7 +106,7 @@ namespace multiverso
                 word_count, hidden_act_, hidden_err_);
             if (word_count > last_word_count)
             {
-                multiverso::Log::Info("Rank %d [Trainer]------TrainNNSpeed: Words/thread/second %lfk\n",
+                multiverso::Log::Info("[Trainer]------TrainNNSpeed: Words/thread/second %lfk\n",
                     ((double)word_count - last_word_count) / 
                     (clock() - start) * (double)CLOCKS_PER_SEC / 1000);
             }
